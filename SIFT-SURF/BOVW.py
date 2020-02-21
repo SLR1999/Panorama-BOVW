@@ -29,8 +29,9 @@ def create_descriptors(data):
         for image in data[class_label]:
             gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
             keypoint, descriptor = features(gray_image, extractor)
-            descriptor_list.extend(descriptor)
-            class_descriptor_list.append(descriptor)
+            if descriptor is not None:
+                descriptor_list.extend(descriptor)
+                class_descriptor_list.append(descriptor)
         class_descriptor_list = np.array(class_descriptor_list)
         image_descriptor[class_label] = class_descriptor_list
     descriptor_list = np.array(descriptor_list)
@@ -41,12 +42,12 @@ def build_bag_of_visual_words(model, image_descriptor):
     hist_length = model.get_params()['n_clusters']
 
     for class_label in image_descriptor:
-        
         list_of_histograms = []
-        for descriptor in image_descriptor[class_label]:
+        for image in image_descriptor[class_label]:
             hist = [0] * hist_length
-            v = model.predict(descriptor.reshape(1, -1))[0]
-            hist[v] = hist[v]+1
+            for descriptor in image:
+                v = model.predict(descriptor.reshape(1, -1))[0]
+                hist[v] = hist[v]+1
             list_of_histograms.append(hist)
         BoVW[class_label] = list_of_histograms
 
@@ -54,7 +55,7 @@ def build_bag_of_visual_words(model, image_descriptor):
     
 extractor = cv2.xfeatures2d.SIFT_create()
 
-# data = read_images(["Bikes", "Horses"])
+# data = read_images("../",["Bikes", "Horses"])
 data = read_images("./cifar-10/",["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"])
 descriptor_list, image_descriptor = create_descriptors(data)
 
