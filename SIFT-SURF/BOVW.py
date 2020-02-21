@@ -9,12 +9,12 @@ def features(image, extractor):
     keypoints, descriptors = extractor.detectAndCompute(image, None)
     return keypoints, descriptors
 
-def read_images(folders):
+def read_images(path, folders):
     data = {}
     for folder in folders:
         images = []
-        for filename in os.listdir(folder):
-            image = cv2.imread(os.path.join(folder, filename))
+        for filename in os.listdir(path+folder):
+            image = cv2.imread(os.path.join(path+folder, filename))
             if image is not None:
                 images.append(image)
         images = np.array(images)
@@ -34,7 +34,7 @@ def create_descriptors(data):
         class_descriptor_list = np.array(class_descriptor_list)
         image_descriptor[class_label] = class_descriptor_list
     descriptor_list = np.array(descriptor_list)
-    return descriptor_list, 42
+    return descriptor_list, image_descriptor
 
 def build_bag_of_visual_words(model, image_descriptor):
     BoVW = {}
@@ -54,10 +54,11 @@ def build_bag_of_visual_words(model, image_descriptor):
     
 extractor = cv2.xfeatures2d.SIFT_create()
 
-data = read_images(["Bikes", "Horses"])
+# data = read_images(["Bikes", "Horses"])
+data = read_images("./cifar-10/",["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"])
 descriptor_list, image_descriptor = create_descriptors(data)
 
-n_clusters = 100
+n_clusters = 20
 
 kmeans = KMeans(n_clusters = n_clusters)
 kmeans.fit(descriptor_list) 
@@ -76,10 +77,13 @@ X = np.asarray(X)
 y = np.asarray(y)
 
 md = svm.SVC(kernel='linear')
-cv = StratifiedKFold(n_splits=5, random_state=42)
+cv = StratifiedKFold(n_splits=6, random_state=42)
 
 scores = []
+count = 0
 for train_ind, validate_ind in cv.split(X, y):
+    print("CV # - ", count)
+    count += 1
     train_X, train_y = X[train_ind], y[train_ind]
     validate_X, validate_y = X[validate_ind], y[validate_ind]
     md.fit(train_X, train_y)
