@@ -37,7 +37,6 @@ def create_descriptors(data):
     return descriptor_list, 42
 
 def build_bag_of_visual_words(model, image_descriptor):
-    BoVW = {}def build_bag_of_visual_words(model, image_descriptor):
     BoVW = {}
     hist_length = model.get_params()['n_clusters']
 
@@ -52,19 +51,7 @@ def build_bag_of_visual_words(model, image_descriptor):
         BoVW[class_label] = list_of_histograms
 
     return BoVW
-    hist_length = model.get_params()['n_clusters']
-
-    for class_label in image_descriptor:
-        list_of_histograms = []
-        for image in image_descriptor[class_label]:
-            hist = [0] * hist_length
-            for descriptor in image:
-                v = model.predict(descriptor.reshape(1, -1))[0]
-                hist[v] = hist[v]+1
-            list_of_histograms.append(hist)
-        BoVW[class_label] = list_of_histograms
-    return BoVW
-
+    
 extractor = cv2.xfeatures2d.SIFT_create()
 
 data = read_images(["Bikes", "Horses"])
